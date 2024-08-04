@@ -19,9 +19,9 @@ onlineUsers = {}
 def send(client_socket, message):
     client_socket.send(message.encode("utf-8"))
 
-def log(log):
-    with open("server/log.txt", "a") as log_file:
-        log_file.write(log + "\n")
+def log(log, client_address_for_log):
+    with open("server/log.txt", "x") as log_file:
+        log_file.write(f"<{client_address_for_log}> - {log}\n")
     print(log)
 
 def onlineUsersSender():
@@ -29,22 +29,22 @@ def onlineUsersSender():
         send(client_socket, f"Online Users: {', '.join(onlineUsers.keys())}")
     print(f"Online Users: {', '.join(onlineUsers.keys())}")
 
-def broadcast(broadcast_message):
+def broadcast(broadcast_message,client_address):
     for username, client_socket in onlineUsers.items():
         send(client_socket, broadcast_message)
-    print(broadcast_message)
+    log(broadcast_message, client_address)
 
-def handle_client(client_socket, username):
+def handle_client(client_socket, client_address, username):
 
     send(client_socket, f"Welcome to chat room, {username}!\n")
     time.sleep(0.3)
 
     onlineUsers[username] = client_socket
+
     onlineUsersSender()
-
     time.sleep(0.3)
-
-    broadcast(f"[{timestamp}] {username} has joined the room.")
+    
+    broadcast(f"[{timestamp}] {username} has joined the room.", client_address)
  
     while True:
         try:
@@ -56,7 +56,7 @@ def handle_client(client_socket, username):
                 client_socket.close()
                 del onlineUsers[username]
                 
-                broadcast(f"[{timestamp}] {username} has left the room.")
+                broadcast(f"[{timestamp}] {username} has left the room.", client_address)
                 time.sleep(0.3) 
                 onlineUsersSender() 
 
@@ -72,14 +72,13 @@ def handle_client(client_socket, username):
                 else:
                     send(client_socket, f"[{timestamp}] {target_user} is not online now.")
                     
-
-                print(f"[{timestamp}] Private message ({username} -> {target_user}): {private_message}")
+                log(f"[{timestamp}] Private message ({username} -> {target_user}): {private_message}", client_address)
 
             if not message:
                 break
 
             else:
-                broadcast(formatted_message)
+                broadcast(formatted_message, client_address)
 
         except:
             break
@@ -90,7 +89,8 @@ def main():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((SERVER_IP, SERVER_PORT))
     server_socket.listen()
-    
+
+    log(f"[{timestamp}] Server has started",f"<('{SERVER_IP}', {SERVER_PORT})>")    
     print(f"Server is on.\nListening {SERVER_IP}:{SERVER_PORT} ...")
 
     def handle_input():
@@ -126,7 +126,7 @@ def main():
                     cur.execute("UPDATE userdata SET status = 1 WHERE username = ?", (username_K))
                     conn.commit()
                     
-                    broadcast(f"[{timestamp}] {username_K} has been kicked.")
+                    broadcast(f"[{timestamp}] {username_K} has been kicked.", client_address)
                     
                     if username_K in onlineUsers:
                         send(onlineUsers[username_K],".kick")
@@ -148,7 +148,7 @@ def main():
                     cur.execute("UPDATE userdata SET status = 0 WHERE username = ?", (username_U))
                     conn.commit()
 
-                    broadcast(f"[{timestamp}] {username_U} has been granted access.")
+                    broadcast(f"[{timestamp}] {username_U} has been granted access.", client_address)
 
                 except Exception as e:
                     print(e)
@@ -165,7 +165,7 @@ def main():
                     cur.execute("UPDATE userdata SET status = 2 WHERE username = ?", (username_M))
                     conn.commit()
 
-                    broadcast(f"[{timestamp}] {username_M} has been muted.")
+                    broadcast(f"[{timestamp}] {username_M} has been muted.", client_address)
                     
                 except Exception as e:
                     print(e)
@@ -182,7 +182,7 @@ def main():
                     cur.execute("UPDATE userdata SET status = 0 WHERE username = ?", (username_UM))
                     conn.commit()
 
-                    broadcast(f"[{timestamp}] {username_UM} has been unmuted.")
+                    broadcast(f"[{timestamp}] {username_UM} has been unmuted.", client_address)
 
                 except Exception as e:
                     print(e)
@@ -206,13 +206,13 @@ def main():
             elif admin_input.startswith(".ann"):
  
                 try:
-                    broadcast(admin_input)
+                    broadcast(admin_input, client_address)
 
                 except Exception as e:
                     print(e)
 
             else:
-                broadcast(f"{timestamp} Server: " + admin_input)
+                broadcast(f"{timestamp} Server: " + admin_input, client_address)
 
     threading.Thread(target=handle_input,).start()
 
@@ -245,7 +245,7 @@ def main():
                     elif status == 0 or 2:
 
                         send(client_socket, "success")
-                        threading.Thread(target=handle_client, args=(client_socket, username)).start()
+                        threading.Thread(target=handle_client, args=(client_socket, client_address, username)).start()
                         onlineUsers[username] = client_socket
 
                     else:

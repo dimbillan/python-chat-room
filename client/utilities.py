@@ -166,5 +166,3 @@ def send_notification(title, message):
 def on_enter(event, message_entry,button):
     if button.cget("state") == tk.NORMAL:
         send_message(message_entry)
-
-#tkinter,plyer,socket,time,threading,hashlib,sqlite3,datetime
