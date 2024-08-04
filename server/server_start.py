@@ -20,7 +20,7 @@ def send(client_socket, message):
     client_socket.send(message.encode("utf-8"))
 
 def log(log):
-    with open("log.txt", "a") as log_file:
+    with open("server/log.txt", "a") as log_file:
         log_file.write(log + "\n")
     print(log)
 
