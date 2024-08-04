@@ -11,7 +11,7 @@ SERVER_PORT = 4444
 global timestamp
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-conn = sqlite3.connect(r"..\userdata.db", check_same_thread=False)
+conn = sqlite3.connect("server/userdata.db", check_same_thread=False)
 cur = conn.cursor()
 
 onlineUsers = {}

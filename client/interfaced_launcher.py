@@ -1,5 +1,5 @@
 import threading
-from funcs import *
+from utilities import *
 from tkinter import Listbox, Tk, Canvas, Entry, Button
 
 def main():
