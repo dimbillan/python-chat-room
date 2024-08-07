@@ -16,6 +16,11 @@ cur = conn.cursor()
 
 onlineUsers = {}
 
+#status explanation:
+#0 -> unkicked, unmuted
+#1 -> kicked
+#2 -> muted
+
 def send(client_socket, message):
     client_socket.send(message.encode("utf-8"))
 
@@ -49,36 +54,51 @@ def handle_client(client_socket, client_address, username):
     while True:
         try:
             message = client_socket.recv(1024).decode("utf-8")
-            formatted_message = f"[{timestamp}] {username} --> {message}"
+            formatted_message = f"[{timestamp}] {username} -> {message}"
             
-            if message == ".exit":
+            cur.execute("SELECT status, privilege_level FROM userdata WHERE username =?", (username))
+            result = cur.fetchone()
+            
+            user_status = result[0]
+            privilege_level = result[1]
 
+            if user_status == 2:
+                send(client_socket, "Server: You are muted.")
+            
+            elif user_status == 1:
+                send(client_socket, "Server: You shouldn't be able to do this. You have already been kicked")
                 client_socket.close()
-                del onlineUsers[username]
-                
-                broadcast(f"[{timestamp}] {username} left the room.", client_address)
-                time.sleep(0.3) 
-                onlineUsersSender() 
 
-                threading.Thread(target=handle_client, args=(client_socket, username,)).join()
-                
-            if message.startswith("@"):
-                target_user = message.split(" ")[0][1:]
-                private_message = " ".join(message.split(" ")[1:])
+            elif user_status == 0:
 
-                if target_user in onlineUsers:  
-                    send(onlineUsers[target_user], f"[{timestamp}] Private message ({username} has sent message to you): {message}")
-                
-                else:
-                    send(client_socket, f"[{timestamp}] {target_user} is not online now.")
+                if not message:
+                    break
+
+                if message == ".exit":
+
+                    client_socket.close()
+                    del onlineUsers[username]
                     
-                log(f"[{timestamp}] Private message ({username} -> {target_user}): {private_message}", client_address)
+                    broadcast(f"[{timestamp}] {username} left the room.", client_address)
+                    time.sleep(0.3) 
+                    onlineUsersSender() 
 
-            if not message:
-                break
+                    threading.Thread(target=handle_client, args=(client_socket, username,)).join()
+                    
+                elif message.startswith("@"):
+                    target_user = message.split(" ")[0][1:]
+                    private_message = " ".join(message.split(" ")[1:])
 
-            else:
-                broadcast(formatted_message, client_address)
+                    if target_user in onlineUsers:  
+                        send(onlineUsers[target_user], f"[{timestamp}] Private message ({username} has sent message to you): {message}")
+                    
+                    else:
+                        send(client_socket, f"[{timestamp}] {target_user} is not online now.")
+                        
+                    log(f"[{timestamp}] Private message ({username} -> {target_user}): {private_message}", client_address)
+
+                else:
+                    broadcast(formatted_message, client_address)
 
         except:
             break
@@ -265,7 +285,7 @@ def main():
             status = result[2]
             
             if not result:
-                send(client_socket, "Failed not authorize")
+                send(client_socket, "Failed to authorize")
                 client_socket.close()
             
             if username in onlineUsers:

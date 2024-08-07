@@ -4,7 +4,7 @@ import socket
 from uu import Error
 import time
 from plyer import notification
-
+import sys
 client_socket = None
 
 running = True
@@ -40,7 +40,7 @@ def receive_messages(chat_box_entry, online_users_entry,canvas,out,chat_window,s
                 elif received_message == ".kick":
                     messagebox.showwarning("Sunucu", "Odadan atıldınız")
                     chat_window.destroy()
-                    break
+                    sys.exit()
 
                 elif received_message == ".mute":
                     messagebox.showwarning("Sunucu", "Susturuldunuz")

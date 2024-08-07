@@ -5,7 +5,7 @@ from datetime import datetime
 
 def main():
     window = Tk()
-    
+
     window.geometry("750x475")
     window.configure(bg = "#151515")
     window.title("Login Window")
@@ -163,7 +163,7 @@ def chat_window_func():
         x=25.0,
         y=75.0,
         width=500.0,
-        height=298.0
+        height=300.0
     )
 
     online_users_entry = Listbox(
@@ -191,7 +191,6 @@ def chat_window_func():
         width=500.0,
         height=48.0
     )
-
 
     toggle_button = Button(
         borderwidth=0,

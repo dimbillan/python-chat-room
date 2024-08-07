@@ -1,7 +1,7 @@
 import sqlite3
 import hashlib
 
-conn = sqlite3.connect(r"C:\Users\sinan\OneDrive\Masaüstü\Diğer\Yazılım\Python\Chatting\Socket\userdata.db")
+conn = sqlite3.connect("server/userdata.db")
 cur = conn.cursor()
 
 cur.execute("""
@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS userdata (
     id INTEGER PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    status INTEGER DEFAULT 0
+    status INTEGER DEFAULT 0,
+    privilege_level INTEGER DEFAULT 0
 )
 """)
 
