@@ -7,9 +7,11 @@ from plyer import notification
 
 client_socket = None
 
+running = True
+
 def receive_messages(chat_box_entry, online_users_entry,canvas,out,chat_window,send_button):
 
-    while True:
+    while running:
         try:
             received_message = client_socket.recv(1024).decode("utf-8")
 
@@ -62,7 +64,7 @@ def receive_messages(chat_box_entry, online_users_entry,canvas,out,chat_window,s
                     messagebox.showinfo(title, content)
 
                 else:
-                    chat_box_entry.insert(tk.END, received_message)
+                    chat_box_entry.insert(tk.END, f"{received_message}\n")
                     chat_box_entry.yview(tk.END)
 
         except ConnectionResetError:
@@ -72,8 +74,8 @@ def receive_messages(chat_box_entry, online_users_entry,canvas,out,chat_window,s
 def login(server_ip, username, password, chat_window_func,window):  
     global client_socket
     if not server_ip:
-        serverIp = "192.168.1.40"
-        serverPort = 4444
+        serverIp = "192.168.1.42"
+        serverPort = 3333
 
     if not username or not password:
         messagebox.showerror("Giriş hatası", "Lütfen kullanıcı adı ve şifrenizi girin")
@@ -104,7 +106,7 @@ def login(server_ip, username, password, chat_window_func,window):
 def register_user(server_ip, username, password, chat_window_func,window):
     global client_socket
     if not server_ip:
-        serverIp = "192.168.1.40"
+        serverIp = "192.168.1.42"
         serverPort = 4444
 
     try:
@@ -137,11 +139,20 @@ def register_user(server_ip, username, password, chat_window_func,window):
         except Error as e:
             messagebox.showerror("hata",e)
 
-def on_closing(window, receive_thread):
-    client_socket.send(".exit".encode("utf-8"))    
-    client_socket.close()
+def on_closing(window, a):
+    global running
+    client_socket.send(".exit".encode("utf-8"))
+
+    running = False
+
+    if a.is_alive():
+        a.join()
+
+    if client_socket:
+        client_socket.close()
+        
     window.destroy()
-    receive_thread.join()
+    
 
 def send_message(message_entry):
     try:

@@ -139,7 +139,7 @@ def chat_window_func():
 
     canvas.place(x = 0, y = 0)
 
-    chat_box_entry = Listbox(
+    chat_box_entry = tk.Text(
         bd=0,
         bg="#D9D9D9",
         fg="#000716",

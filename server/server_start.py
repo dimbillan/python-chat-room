@@ -5,8 +5,8 @@ import threading
 from datetime import datetime
 import time
 
-SERVER_IP = "192.168.1.40"
-SERVER_PORT = 4444
+SERVER_IP = "192.168.1.42"
+SERVER_PORT = 3333
 
 global timestamp
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -20,7 +20,7 @@ def send(client_socket, message):
     client_socket.send(message.encode("utf-8"))
 
 def log(log, client_address_for_log):
-    with open("server/log.txt", "x") as log_file:
+    with open("server/log.txt", "a") as log_file:
         log_file.write(f"<{client_address_for_log}> - {log}\n")
     print(log)
 
