@@ -1,12 +1,13 @@
 import threading
 from utilities import *
 from tkinter import Listbox, Tk, Canvas, Entry, Button
+from datetime import datetime
 
 def main():
     window = Tk()
     window.geometry("750x475")
     window.configure(bg = "#151515")
-
+    window.title("Login Window")
 
     canvas = Canvas(
         window,
@@ -118,6 +119,18 @@ def main():
         fill="#D9D9D9",
         font=("Inter", 15 * -1)
     )
+
+    def update():
+        time = datetime.now().strftime("%H:%M:%S")
+        date = datetime.now().strftime("%d.%m.%Y")
+        canvas.delete("time")
+        canvas.delete("date")
+        canvas.create_text(720, 25.0, anchor="ne", text= time, fill="#D9D9D9", font=("Inter", 15 * -1), tags = "time")
+        canvas.create_text(720, 45.0, anchor="ne", text= date, fill="#D9D9D9", font=("Inter", 15 * -1), tags = "date") 
+        window.after(1000, update)
+
+    update()
+
     window.protocol("WM_DELETE_WINDOW", lambda: window.destroy())
     window.resizable(False, False)
     window.mainloop()
@@ -127,6 +140,8 @@ def chat_window_func():
 
     chat_window.geometry("750x475")
     chat_window.configure(bg = "#151515")
+    chat_window.title("Chat Room")
+
     canvas = Canvas(
         chat_window,
         bg = "#151515",
@@ -260,6 +275,18 @@ def chat_window_func():
         fill="#D9D9D9",
         font=("Inter", 15 * -1)
     )
+
+    def update():
+        time = datetime.now().strftime("%H:%M:%S")
+        date = datetime.now().strftime("%d.%m.%Y")
+        canvas.delete("time")
+        canvas.delete("date")
+        canvas.create_text(525, 25.0, anchor="ne", text= time, fill="#D9D9D9", font=("Inter", 15 * -1), tags = "time")
+        canvas.create_text(525, 45.0, anchor="ne", text= date, fill="#D9D9D9", font=("Inter", 15 * -1), tags = "date") 
+        chat_window.after(1000, update)
+
+    update()
+    
     chat_window.bind("<Return>", lambda event: on_enter(event, message_entry,send_button))
 
     receive_thread = threading.Thread(target=receive_messages, args=(chat_box_entry,online_users_entry,canvas,online_users_text,chat_window,send_button,))

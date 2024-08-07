@@ -153,7 +153,6 @@ def on_closing(window, a):
         
     window.destroy()
     
-
 def send_message(message_entry):
     try:
         message = message_entry.get()
