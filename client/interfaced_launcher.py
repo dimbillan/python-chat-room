@@ -5,6 +5,7 @@ from datetime import datetime
 
 def main():
     window = Tk()
+    
     window.geometry("750x475")
     window.configure(bg = "#151515")
     window.title("Login Window")
