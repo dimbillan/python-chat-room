@@ -18,7 +18,6 @@ def main():
         highlightthickness = 0,
         relief = "ridge"
     )
-
     canvas.place(x = 0, y = 0)
 
     login_button = Button(
@@ -151,7 +150,6 @@ def chat_window_func():
         highlightthickness = 0,
         relief = "ridge"
     )
-
     canvas.place(x = 0, y = 0)
 
     chat_box_entry = tk.Text(

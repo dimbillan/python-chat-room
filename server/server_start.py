@@ -21,7 +21,7 @@ def send(client_socket, message):
 
 def log(log, client_address_for_log):
     with open("server/log.txt", "a") as log_file:
-        log_file.write(f"<{client_address_for_log}> - {log}\n")
+        log_file.write(f"{client_address_for_log} - {log}\n")
     print(log)
 
 def onlineUsersSender():
@@ -56,7 +56,7 @@ def handle_client(client_socket, client_address, username):
                 client_socket.close()
                 del onlineUsers[username]
                 
-                broadcast(f"[{timestamp}] {username} has left the room.", client_address)
+                broadcast(f"[{timestamp}] {username} left the room.", client_address)
                 time.sleep(0.3) 
                 onlineUsersSender() 
 
@@ -97,7 +97,7 @@ def main():
 
         while True:
 
-            admin_input= input("")
+            admin_input= input("Server:")
 
             if admin_input.startswith(".run"):
 
@@ -226,6 +226,20 @@ def main():
 
                 except Exception as e:
                     print(e)
+
+            elif admin_input.startswith(".exit"):
+                code = admin_input.split(" ", 1)
+                username_E = code[1]
+                if username_E in onlineUsers:
+
+                    client_socket.close()
+                    del onlineUsers[username_E]
+                    
+                    broadcast(f"[{timestamp}] {username_E} has been disconnected by server.", client_address)
+                    time.sleep(0.3) 
+                    onlineUsersSender() 
+
+                    threading.Thread(target=handle_client, args=(client_socket, username_E,)).join
 
             else:
                 broadcast(f"{timestamp} Server: " + admin_input, client_address)
