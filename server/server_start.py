@@ -123,6 +123,7 @@ def main():
                 try:
                     code = admin_input.split(" ", 1)
                     username_K = code[1]
+
                     cur.execute("UPDATE userdata SET status = 1 WHERE username = ?", (username_K))
                     conn.commit()
                     
@@ -136,6 +137,9 @@ def main():
                         del onlineUsers[username_K]
                         onlineUsersSender() 
 
+                    else:
+                        print(f"User not found: {username_K}")
+
                 except Exception as e:
                     print(e)
 
@@ -145,10 +149,14 @@ def main():
                     code = admin_input.split(" ", 1)
                     username_U = code[1]
 
-                    cur.execute("UPDATE userdata SET status = 0 WHERE username = ?", (username_U))
-                    conn.commit()
+                    if username_U in onlineUsers:
+                        cur.execute("UPDATE userdata SET status = 0 WHERE username = ?", (username_U))
+                        conn.commit()  
 
-                    broadcast(f"[{timestamp}] {username_U} has been granted access.", client_address)
+                        broadcast(f"[{timestamp}] {username_U} has been granted access.", client_address)
+
+                    else:
+                        print(f"User not found: {username_U}")
 
                 except Exception as e:
                     print(e)
@@ -159,14 +167,18 @@ def main():
                     code = admin_input.split(" ", 1)
                     username_M = code[1]
 
+                    if username_M in result[0]:
+                        cur.execute("UPDATE userdata SET status = 2 WHERE username = ?", (username_M))
+                        conn.commit()
+                        
+                        broadcast(f"[{timestamp}] {username_M} has been muted.", client_address)
+
                     if username_M in onlineUsers:
                         send(onlineUsers[username_M], ".mute")
-
-                    cur.execute("UPDATE userdata SET status = 2 WHERE username = ?", (username_M))
-                    conn.commit()
-
-                    broadcast(f"[{timestamp}] {username_M} has been muted.", client_address)
                     
+                    else:
+                        print(f"User not found: {username_M}")
+
                 except Exception as e:
                     print(e)
 
@@ -176,13 +188,17 @@ def main():
                     code = admin_input.split(" ", 1)
                     username_UM = code[1]
 
+                    if username_UM in result[0]:
+                        cur.execute("UPDATE userdata SET status = 0 WHERE username = ?", (username_UM))
+                        conn.commit()
+
+                        broadcast(f"[{timestamp}] {username_UM} has been unmuted.", client_address)
+
                     if username_UM in onlineUsers:
                         send(onlineUsers[username_UM], ".unmute")
 
-                    cur.execute("UPDATE userdata SET status = 0 WHERE username = ?", (username_UM))
-                    conn.commit()
-
-                    broadcast(f"[{timestamp}] {username_UM} has been unmuted.", client_address)
+                    else:
+                        print(f"User not found: {username_UM}")
 
                 except Exception as e:
                     print(e)
@@ -231,35 +247,27 @@ def main():
         
             cur.execute("SELECT username, password, status FROM userdata WHERE username = ? AND password = ?", (username, password))
             result = cur.fetchone()
+            
+            status = result[2]
+            
+            if not result:
+                send(client_socket, "Failed not authorize")
+                client_socket.close()
+            
+            if username in onlineUsers:
+                send(client_socket, "You have already logged in")
 
-            if result:
+            if status == 1:
+                send(client_socket, "You have been kicked")
+                client_socket.close()
 
-                status = result[2]
-                if username not in onlineUsers:
-
-                    if status == 1:
-
-                        send(client_socket, "kicked")
-                        client_socket.close()
-
-                    elif status == 0 or 2:
-
-                        send(client_socket, "success")
-                        threading.Thread(target=handle_client, args=(client_socket, client_address, username)).start()
-                        onlineUsers[username] = client_socket
-
-                    else:
-
-                        send(client_socket, "faila")
-                        client_socket.close()
-
-                else:
-
-                    send(client_socket, "already logged in")
+            elif status == 0 or 2:
+                send(client_socket, "success")
+                threading.Thread(target=handle_client, args=(client_socket, client_address, username)).start()
+                onlineUsers[username] = client_socket
 
             else:
-
-                send(client_socket, "failb")
+                send(client_socket, "Failed: Unvalid status")
                 client_socket.close()
                 
         elif loginorregister == "register":
@@ -272,11 +280,7 @@ def main():
 
             result = cur.fetchone()
 
-            if result:
-                send(client_socket, "username taken")
-                client_socket.close()
-
-            else:
+            if not result:
                 cur.execute("INSERT INTO userdata (username, password, status) VALUES (?, ?, ?)",(username, password, 0))
                 conn.commit()
 
@@ -284,10 +288,15 @@ def main():
 
                 threading.Thread(target=handle_client, args=(client_socket, username)).start()
 
+                onlineUsers[username] = client_socket                
+
+            else:
+                send(client_socket, "Username has already been taken")
+                client_socket.close()
                 onlineUsers[username] = client_socket
 
         else:
-            send(client_socket, "fail")
+            send(client_socket, "Failed: Wrong label")
             client_socket.close()
 
 if __name__ == "__main__":
